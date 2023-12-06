@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MongoDbManager;
+using System;
 using System.Diagnostics;
 
 namespace EscapeFromTheWoods
@@ -10,12 +11,12 @@ namespace EscapeFromTheWoods
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
             Console.WriteLine("Hello World!");
-            string connectionString = @"Data Source=VIZING;Initial Catalog=monkeys;Integrated Security=True";
-            DBwriter db = new DBwriter(connectionString);
+            string connString = @"mongodb://localhost:27017";
+            MongoDbRepo mongodb = new MongoDbRepo(connString);
 
-            string path = @"C:\NET\monkeys";
+            string path = @"C:\Users\quint\Desktop\School\Programmeren Specialisatie 2\EscapeFromTheWoodsToRefactor\Bitmaps";
             Map m1 = new Map(0, 500, 0, 500);
-            Wood w1 = WoodBuilder.GetWood(500, m1, path,db);
+            Wood w1 = WoodBuilder.GetWood(500, m1, path, mongodb);
             w1.PlaceMonkey("Alice", IDgenerator.GetMonkeyID());
             w1.PlaceMonkey("Janice", IDgenerator.GetMonkeyID());
             w1.PlaceMonkey("Toby", IDgenerator.GetMonkeyID());
@@ -23,7 +24,7 @@ namespace EscapeFromTheWoods
             w1.PlaceMonkey("Jos", IDgenerator.GetMonkeyID());
             
             Map m2 = new Map(0, 200, 0, 400);
-            Wood w2 = WoodBuilder.GetWood(2500, m2, path,db);
+            Wood w2 = WoodBuilder.GetWood(2500, m2, path, mongodb);
             w2.PlaceMonkey("Tom", IDgenerator.GetMonkeyID());
             w2.PlaceMonkey("Jerry", IDgenerator.GetMonkeyID());
             w2.PlaceMonkey("Tiffany", IDgenerator.GetMonkeyID());
@@ -31,7 +32,7 @@ namespace EscapeFromTheWoods
             w2.PlaceMonkey("Jebus", IDgenerator.GetMonkeyID());
 
             Map m3 = new Map(0, 400, 0, 400);
-            Wood w3 = WoodBuilder.GetWood(2000, m3, path,db);
+            Wood w3 = WoodBuilder.GetWood(2000, m3, path, mongodb);
             w3.PlaceMonkey("Kelly", IDgenerator.GetMonkeyID());
             w3.PlaceMonkey("Kenji", IDgenerator.GetMonkeyID());
             w3.PlaceMonkey("Kobe", IDgenerator.GetMonkeyID());

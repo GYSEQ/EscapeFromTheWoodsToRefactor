@@ -20,18 +20,6 @@ namespace MongoDbManager
             this.y = y;
         }
 
-        public DbMonkeyRecord(ObjectId id, int monkeyId, string monkeyName, int woodId, int seqNr, int treeId, int x, int y)
-        {
-            this.id = id;
-            this.monkeyId = monkeyId;
-            this.monkeyName = monkeyName;
-            this.woodId = woodId;
-            this.seqNr = seqNr;
-            this.treeId = treeId;
-            this.x = x;
-            this.y = y;
-        }
-
         public ObjectId id { get; set; }
         public int  monkeyId { get; set; }
         public string monkeyName { get; set; }
