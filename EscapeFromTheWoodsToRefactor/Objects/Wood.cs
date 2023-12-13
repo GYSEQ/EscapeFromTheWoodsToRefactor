@@ -5,12 +5,14 @@ using System.IO;
 using System.Drawing.Imaging;
 using System.Drawing;
 using MongoDbManager;
+using EscapeFromTheWoods.Objects;
 
 namespace EscapeFromTheWoods
 {
     public class Wood
     {
         private const int drawingFactor = 8;
+        private Dictionary<int, Monkey> treeOccupancy;
         private string path;
         private MongoDbRepo mongodb;
         private Random r = new Random(1);
@@ -18,6 +20,7 @@ namespace EscapeFromTheWoods
         public List<Tree> trees { get; set; }
         public List<Monkey> monkeys { get; private set; }
         private Map map;
+        private Grid grid;
         public Wood(int woodID, List<Tree> trees, Map map, string path, MongoDbRepo mongodb)
         {
             this.woodID = woodID;
@@ -26,7 +29,14 @@ namespace EscapeFromTheWoods
             this.map = map;
             this.path = path;
             this.mongodb = mongodb;
+            treeOccupancy = new Dictionary<int, Monkey>();
+            grid = new Grid(100);
+            foreach (Tree tree in trees)
+            {
+                grid.AddTree(tree);
+            }
         }
+
         public void PlaceMonkey(string monkeyName, int monkeyID)
         {
             int treeNr;
@@ -34,11 +44,13 @@ namespace EscapeFromTheWoods
             {
                 treeNr = r.Next(0, trees.Count - 1);
             }
-            while (trees[treeNr].hasMonkey);
+            while (treeOccupancy.ContainsKey(trees[treeNr].treeID));
+
             Monkey m = new Monkey(monkeyID, monkeyName, trees[treeNr]);
             monkeys.Add(m);
-            trees[treeNr].hasMonkey = true;
+            treeOccupancy.Add(trees[treeNr].treeID, m);
         }
+
         public void Escape()
         {
             List<List<Tree>> routes = new List<List<Tree>>();
@@ -129,37 +141,38 @@ namespace EscapeFromTheWoods
         {
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine($"{woodID}:start {woodID},{monkey.name}");
-            Dictionary<int, bool> visited = new Dictionary<int, bool>();
-            trees.ForEach(x => visited.Add(x.treeID, false));
-            List<Tree> route = new List<Tree>() { monkey.tree };
-            do
-            {
-                visited[monkey.tree.treeID] = true;
-                SortedList<double, List<Tree>> distanceToMonkey = new SortedList<double, List<Tree>>();
 
-                //zoek dichtste boom die nog niet is bezocht            
+            HashSet<int> visited = new HashSet<int>();
+
+            List<Tree> route = new List<Tree>() { monkey.tree };
+            visited.Add(monkey.tree.treeID);
+
+            while (true)
+            {
+                Tree nearestTree = null;
+                double minDistance = double.MaxValue;
+                var nearbyTrees = grid.GetNearbyTrees(monkey.tree);
+
+                double closestDistanceSquared = double.MaxValue;
+
                 foreach (Tree t in trees)
                 {
-                    if ((!visited[t.treeID]) && (!t.hasMonkey))
+                    if ((!visited.Contains(t.treeID) && !t.hasMonkey))
                     {
-                        double d = Math.Sqrt(Math.Pow(t.x - monkey.tree.x, 2) + Math.Pow(t.y - monkey.tree.y, 2));
-                        if (distanceToMonkey.ContainsKey(d)) distanceToMonkey[d].Add(t);
-                        else distanceToMonkey.Add(d, new List<Tree>() { t });
+                        // Use squared distance
+                        double dSquared = Math.Pow(t.x - monkey.tree.x, 2) + Math.Pow(t.y - monkey.tree.y, 2);
+                        if (dSquared < closestDistanceSquared)
+                        {
+                            closestDistanceSquared = dSquared;
+                            nearestTree = t;
+                        }
                     }
                 }
-                //distance to border            
-                //noord oost zuid west
-                double distanceToBorder = (new List<double>(){ map.ymax - monkey.tree.y,
-                map.xmax - monkey.tree.x,monkey.tree.y-map.ymin,monkey.tree.x-map.xmin }).Min();
-                if (distanceToMonkey.Count == 0)
-                {
-                    writeRouteToDB(monkey, route);
-                    writeLogToDb(monkey, route);
-                    Console.ForegroundColor = ConsoleColor.White;
-                    Console.WriteLine($"{woodID}:end {woodID},{monkey.name}");
-                    return route;
-                }
-                if (distanceToBorder < distanceToMonkey.First().Key)
+
+                // Check distance to border.
+                double distanceToBorder = GetDistanceToBorder(monkey.tree);
+
+                if (nearestTree == null || distanceToBorder < minDistance)
                 {
                     writeRouteToDB(monkey, route);
                     writeLogToDb(monkey, route);
@@ -168,10 +181,18 @@ namespace EscapeFromTheWoods
                     return route;
                 }
 
-                route.Add(distanceToMonkey.First().Value.First());
-                monkey.tree = distanceToMonkey.First().Value.First();
+                route.Add(nearestTree);
+                monkey.tree = nearestTree;
+                visited.Add(nearestTree.treeID);
             }
-            while (true);
+        }
+
+        private double GetDistanceToBorder(Tree tree)
+        {
+            return (new List<double>()
+        {
+            map.ymax - tree.y, map.xmax - tree.x, tree.y - map.ymin, tree.x - map.xmin
+        }).Min();
         }
     }
 }
