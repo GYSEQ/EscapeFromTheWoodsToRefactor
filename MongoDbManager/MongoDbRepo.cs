@@ -37,5 +37,19 @@ namespace MongoDbManager
             var collection = db.GetCollection<DbLog>("Logs");
             collection.InsertMany(logs);
         }
+
+        public void EmptyDb()
+        {
+            var filter = Builders<DbMonkeyRecord>.Filter.Empty;
+            var filter2 = Builders<DbWoodRecord>.Filter.Empty;
+            var filter3 = Builders<DbLog>.Filter.Empty;
+            var collection = db.GetCollection<DbMonkeyRecord>("MonkeyRecords");
+            var collection2 = db.GetCollection<DbWoodRecord>("WoodRecords");
+            var collection3 = db.GetCollection<DbLog>("Logs");
+            collection.DeleteMany(filter);
+            collection2.DeleteMany(filter2);
+            collection3.DeleteMany(filter3);
+
+        }
     }
 }
