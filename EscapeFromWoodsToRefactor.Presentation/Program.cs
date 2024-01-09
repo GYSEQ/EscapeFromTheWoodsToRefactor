@@ -1,4 +1,5 @@
-﻿using MongoDbManager;
+﻿using EscapeFromTheWoodsToRefactor.Business;
+using MongoDbManager;
 using System;
 using System.Diagnostics;
 
@@ -13,6 +14,7 @@ namespace EscapeFromTheWoods
             Console.WriteLine("Hello World!");
             string connString = @"mongodb://localhost:27017";
             MongoDbRepo mongodb = new MongoDbRepo(connString);
+            WoodManager wm = new WoodManager(mongodb);
             mongodb.EmptyDb();
 
             string path = @"C:\Users\quint\Desktop\School\Programmeren Specialisatie 2\EscapeFromTheWoodsToRefactor\Bitmaps";
@@ -39,9 +41,7 @@ namespace EscapeFromTheWoods
             w3.PlaceMonkey("Kobe", IDgenerator.GetMonkeyID());
             w3.PlaceMonkey("Kendra", IDgenerator.GetMonkeyID());
 
-            w1.WriteWoodToDB();
-            w2.WriteWoodToDB();
-            w3.WriteWoodToDB();
+            Task.WhenAll(wm.WriteWoodToDbAsync(w1), wm.WriteWoodToDbAsync(w2), wm.WriteWoodToDbAsync(w3));
             Task.WaitAll(w1.EscapeAsync(), w2.EscapeAsync(), w3.EscapeAsync());
 
 

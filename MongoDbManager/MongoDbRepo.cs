@@ -11,28 +11,26 @@ namespace MongoDbManager
     {
         private IMongoClient dbClient;
         private IMongoDatabase db;
-        private string connectionString;
 
         public MongoDbRepo(string connectionString)
         {
-            this.connectionString = connectionString;
             dbClient = new MongoClient(connectionString);
             db = dbClient.GetDatabase("EscapeFromTheWoods");
         }
 
-        public void WriteMonkeyRecords(List<DbMonkeyRecord> monkeyRecords)
+        public async Task WriteMonkeyRecordsAsync(List<DbMonkeyRecord> monkeyRecords)
         {
             var collection = db.GetCollection<DbMonkeyRecord>("MonkeyRecords");
             collection.InsertMany(monkeyRecords);
         }
 
-        public void WriteWoodRecords(List<DbWoodRecord> woodRecords)
+        public async Task WriteWoodRecordsAsync(List<DbWoodRecord> woodRecords)
         {
             var collection = db.GetCollection<DbWoodRecord>("WoodRecords");
             collection.InsertMany(woodRecords);
         }
 
-        public void WriteLogs(List<DbLog> logs)
+        public async Task WriteLogsAsync(List<DbLog> logs)
         {
             var collection = db.GetCollection<DbLog>("Logs");
             collection.InsertMany(logs);
